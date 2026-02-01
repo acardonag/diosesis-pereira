@@ -1,0 +1,1001 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diócesis de Pereira - App Oficial</title>
+    
+    <!-- Material Design & Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        :root {
+            --primary-gold: #C9A961;
+            --accent-gold: #D4AF37;
+            --soft-red: #C1272D;
+            --bg-cream: #FAF9F6;
+            --bg-light: #FDFCFA;
+            --surface-white: #FFFFFF;
+            --text-dark: #2C2C2C;
+            --text-gray: #6B6B6B;
+            --text-light: #9CA3AF;
+            --border-light: #E8E3D8;
+        }
+
+        * {
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: var(--bg-cream);
+            color: var(--text-dark);
+            margin: 0;
+            padding-bottom: 90px;
+        }
+
+        .app-bar {
+            background: white;
+            color: var(--text-dark);
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.06);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 1px solid var(--border-light);
+        }
+        
+        .app-bar::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary-gold) 0%, var(--accent-gold) 50%, var(--primary-gold) 100%);
+        }
+
+        .m-card {
+            background: var(--surface-white);
+            border-radius: 16px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+            margin-bottom: 16px;
+            border: 1px solid var(--border-light);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
+        }
+
+        .search-container {
+            background: white;
+            border-radius: 50px;
+            padding: 16px 24px;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 2px 16px rgba(0,0,0,0.04);
+            margin: 20px 16px;
+            border: 1px solid var(--border-light);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .search-container:focus-within {
+            border-color: var(--primary-gold);
+            box-shadow: 0 4px 20px rgba(201, 169, 97, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .search-input {
+            border: none;
+            outline: none;
+            flex: 1;
+            margin-left: 10px;
+            font-size: 16px;
+        }
+
+        .chip {
+            padding: 10px 20px;
+            border-radius: 50px;
+            background: white;
+            border: 1px solid var(--border-light);
+            font-size: 14px;
+            font-weight: 500;
+            margin-right: 10px;
+            display: inline-block;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            color: var(--text-gray);
+        }
+        
+        .chip:hover {
+            background: var(--bg-light);
+            border-color: var(--primary-gold);
+            color: var(--text-dark);
+        }
+
+        .chip-active {
+            background: linear-gradient(135deg, var(--primary-gold) 0%, var(--accent-gold) 100%);
+            color: white;
+            border-color: transparent;
+            box-shadow: 0 4px 16px rgba(201, 169, 97, 0.3);
+            font-weight: 600;
+        }
+
+        .time-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 8px 16px;
+            background: var(--bg-light);
+            color: var(--text-gray);
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 500;
+            margin: 4px;
+            border: 1px solid var(--border-light);
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .time-badge:hover {
+            background: white;
+            border-color: var(--primary-gold);
+        }
+
+        .time-badge.next {
+            background: linear-gradient(135deg, var(--primary-gold) 0%, var(--accent-gold) 100%);
+            color: white;
+            border: none;
+            box-shadow: 0 3px 12px rgba(201, 169, 97, 0.4);
+            font-weight: 600;
+        }
+        
+        .time-badge.next::before {
+            content: '⏰ ';
+            margin-right: 4px;
+        }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            height: 70px;
+            background: white;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            box-shadow: 0 -2px 20px rgba(0,0,0,0.06);
+            z-index: 1000;
+            border-top: 1px solid var(--border-light);
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            color: var(--text-light);
+            font-size: 11px;
+            font-weight: 500;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            padding: 8px 16px;
+            border-radius: 12px;
+            cursor: pointer;
+        }
+        
+        .nav-item:hover {
+            background: var(--bg-light);
+        }
+
+        .nav-item.active {
+            color: var(--primary-gold);
+            background: rgba(201, 169, 97, 0.1);
+        }
+        
+        .nav-item.active .material-icons {
+            color: var(--primary-gold);
+        }
+
+        .next-mass-alert {
+            background: linear-gradient(135deg, #4A148C 0%, #6A1B9A 100%);
+            color: white;
+            border-radius: 16px;
+            padding: 20px;
+            margin: 16px;
+            box-shadow: 0 10px 15px -3px rgba(74, 20, 140, 0.3);
+        }
+
+        .hero-card {
+            background: white;
+            color: var(--text-dark);
+            border-radius: 24px;
+            padding: 32px;
+            margin: 20px 0 28px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+            border: 1px solid var(--border-light);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .hero-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-gold) 0%, var(--accent-gold) 50%, var(--primary-gold) 100%);
+        }
+        
+        .hero-card::after {
+            content: '';
+            position: absolute;
+            bottom: -100px;
+            right: -100px;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(201, 169, 97, 0.08) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .hero-title {
+            font-size: 24px;
+            font-weight: 700;
+            line-height: 1.4;
+            margin-top: 12px;
+            margin-bottom: 8px;
+            letter-spacing: -0.03em;
+            color: var(--text-dark);
+        }
+
+        .hero-subtitle {
+            font-size: 15px;
+            color: var(--text-gray);
+            font-weight: 400;
+            letter-spacing: 0.01em;
+            line-height: 1.6;
+        }
+
+        .action-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .action-card {
+            background: var(--bg-light);
+            color: var(--text-dark);
+            border-radius: 16px;
+            padding: 20px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border: 1px solid var(--border-light);
+            font-weight: 600;
+            font-size: 15px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .action-card::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: linear-gradient(180deg, var(--primary-gold) 0%, var(--accent-gold) 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .action-card:hover {
+            transform: translateX(4px);
+            background: white;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+            border-color: var(--primary-gold);
+        }
+        
+        .action-card:hover::before {
+            opacity: 1;
+        }
+        
+        .action-card .material-icons {
+            color: var(--primary-gold);
+            font-size: 24px;
+            transition: transform 0.3s ease;
+        }
+        
+        .action-card:hover .material-icons {
+            transform: scale(1.1);
+        }
+
+        .section-title {
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--primary-gold);
+            margin: 32px 0 16px;
+            position: relative;
+            padding-left: 20px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .section-title::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 6px;
+            height: 6px;
+            background: var(--primary-gold);
+            border-radius: 50%;
+            box-shadow: 0 0 0 3px rgba(201, 169, 97, 0.2);
+        }
+        
+        .section-title::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(90deg, var(--border-light) 0%, transparent 100%);
+            margin-left: 12px;
+        }
+
+        .info-card {
+            background: white;
+            border-radius: 20px;
+            padding: 24px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+            border: 1px solid var(--border-light);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .info-card:hover {
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+            border-color: var(--primary-gold);
+        }
+
+        .parish-card {
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+        
+        .parish-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 16px;
+            background: linear-gradient(135deg, rgba(201, 169, 97, 0.05) 0%, transparent 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .parish-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+            border-color: var(--primary-gold);
+        }
+        
+        .parish-card:hover::before {
+            opacity: 1;
+        }
+
+        .detail-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(17, 24, 39, 0.45);
+            backdrop-filter: blur(2px);
+            z-index: 999;
+        }
+
+        .detail-panel {
+            position: fixed;
+            inset: 0;
+            z-index: 1000;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            padding: 16px;
+        }
+
+        .detail-card {
+            width: 100%;
+            max-width: 560px;
+            background: white;
+            border-radius: 28px;
+            padding: 28px;
+            box-shadow: 0 24px 48px rgba(0,0,0,0.15);
+            border: 1px solid var(--border-light);
+            position: relative;
+        }
+        
+        .detail-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-gold) 0%, var(--accent-gold) 50%, var(--primary-gold) 100%);
+            border-radius: 28px 28px 0 0;
+        }
+
+        .detail-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .detail-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text-dark);
+            letter-spacing: -0.03em;
+            line-height: 1.3;
+        }
+
+        .detail-close {
+            background: var(--bg-light);
+            border-radius: 999px;
+            width: 40px;
+            height: 40px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid var(--border-light);
+        }
+        
+        .detail-close:hover {
+            background: white;
+            border-color: var(--primary-gold);
+            transform: rotate(90deg);
+        }
+        
+        .detail-close:hover .material-icons {
+            color: var(--primary-gold) !important;
+        }
+
+        .schedule-day {
+            margin-top: 10px;
+        }
+
+        .schedule-day-title {
+            font-size: 11px;
+            font-weight: 700;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 6px;
+        }
+
+        .skeleton {
+            background: linear-gradient(90deg, #f0f0f0 25%, #f8f8f8 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+            border-radius: 8px;
+        }
+
+        @keyframes loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <div class="app-bar p-5 flex items-center justify-between">
+        <div class="flex items-center gap-4">
+            <div class="p-3 rounded-2xl" style="background: linear-gradient(135deg, var(--primary-gold) 0%, var(--accent-gold) 100%); box-shadow: 0 4px 12px rgba(201, 169, 97, 0.3);">
+                <span class="material-icons text-3xl text-white">church</span>
+            </div>
+            <div>
+                <h1 class="font-bold text-xl leading-tight" style="color: var(--text-dark);">Diócesis de Pereira</h1>
+                <p class="text-xs tracking-wider font-normal" style="color: var(--primary-gold);">Guía de Parroquias</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-2">
+            <span class="material-icons text-2xl" style="color: var(--text-light);" id="gps-status">location_searching</span>
+        </div>
+    </div>
+
+    <main id="app-content" class="px-4 pb-24">
+        <section id="hero" class="hero-card">
+            <div class="flex items-center gap-3 mb-3">
+                <div class="p-2 rounded-xl" style="background: linear-gradient(135deg, rgba(201, 169, 97, 0.15) 0%, rgba(212, 175, 55, 0.1) 100%);">
+                    <span class="material-icons" style="color: var(--primary-gold); font-size: 28px;">waving_hand</span>
+                </div>
+                <div>
+                    <p class="hero-subtitle font-semibold" id="greeting" style="color: var(--text-dark); font-size: 16px;">Paz y bien</p>
+                    <p class="text-xs" style="color: var(--text-gray);" id="motivation">Hoy es un buen día para orar</p>
+                </div>
+            </div>
+            <h2 class="hero-title">¿Cómo quieres buscar tu parroquia?</h2>
+            <div class="action-grid">
+                <button class="action-card" onclick="setMode('nearest')">
+                    <span>Recomiéndame la más cercana</span>
+                    <span class="material-icons">near_me</span>
+                </button>
+                <button class="action-card" onclick="setMode('day')">
+                    <span>Buscar por día</span>
+                    <span class="material-icons">calendar_today</span>
+                </button>
+                <button class="action-card" onclick="setMode('parish')">
+                    <span>Buscar por parroquia</span>
+                    <span class="material-icons">search</span>
+                </button>
+            </div>
+        </section>
+
+        <section id="nearest-section" class="hidden">
+            <div class="section-title">Recomendación cercana</div>
+            <div id="nearest-card" class="info-card">
+                <div class="skeleton h-20 w-full"></div>
+            </div>
+        </section>
+
+        <section id="day-section" class="hidden">
+            <div class="section-title">Buscar por día</div>
+            <div class="flex overflow-x-auto py-2 no-scrollbar space-x-2" id="day-filters">
+                <div class="chip chip-active" onclick="filterByDay('Hoy')">Hoy</div>
+                <div class="chip" onclick="filterByDay('Lunes')">Lun</div>
+                <div class="chip" onclick="filterByDay('Martes')">Mar</div>
+                <div class="chip" onclick="filterByDay('Miercoles')">Mié</div>
+                <div class="chip" onclick="filterByDay('Jueves')">Jue</div>
+                <div class="chip" onclick="filterByDay('Viernes')">Vie</div>
+                <div class="chip" onclick="filterByDay('Sabado')">Sáb</div>
+                <div class="chip" onclick="filterByDay('Domingo')">Dom</div>
+            </div>
+            <div id="parish-list-day" class="mt-4 space-y-4">
+                <div class="skeleton h-28 w-full"></div>
+                <div class="skeleton h-28 w-full"></div>
+            </div>
+        </section>
+
+        <section id="parish-section" class="hidden">
+            <div class="section-title">Buscar por parroquia</div>
+            <div class="search-container">
+                <span class="material-icons text-gray-400">search</span>
+                <input type="text" id="parish-search" class="search-input" placeholder="Nombre, barrio o ciudad...">
+            </div>
+            <div id="parish-list-search" class="mt-4 space-y-4">
+                <div class="skeleton h-28 w-full"></div>
+                <div class="skeleton h-28 w-full"></div>
+            </div>
+        </section>
+    </main>
+
+    <div id="detail-overlay" class="detail-overlay hidden" onclick="closeParishDetail()"></div>
+    <div id="parish-detail" class="detail-panel hidden">
+        <div class="detail-card">
+            <div id="detail-content">
+                <!-- Dinámico -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = "https://script.google.com/macros/s/AKfycbx7E0SWXmLWnVEO5Jjzk5Cx-9jZCKFSnO1wT4tVSfok9hxulfw_FOI13OFS0NiutCcU/exec";
+        
+        let ALL_DATA = { parroquias: [], horarios: [] };
+        let USER_LOCATION = null;
+        let CURRENT_FILTER_DAY = 'Hoy';
+
+        const DIAS_SEMANA = ['Domingo', 'Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes', 'Sabado'];
+
+        function setGreeting() {
+            const hour = new Date().getHours();
+            const greeting = hour < 12 ? 'Buenos días' : hour < 18 ? 'Buenas tardes' : 'Buenas noches';
+            const motivations = ['Paz y bien.', 'Dios te acompaña.', 'Camina con fe.', 'Vive con esperanza.'];
+            const motivation = motivations[hour % motivations.length];
+            document.getElementById('greeting').innerText = `${greeting}.`;
+            document.getElementById('motivation').innerText = motivation;
+        }
+
+        function setMode(mode) {
+            const sections = ['nearest-section', 'day-section', 'parish-section'];
+            sections.forEach(id => document.getElementById(id).classList.add('hidden'));
+
+            if (mode && sections.includes(`${mode}-section`)) {
+                const target = document.getElementById(`${mode}-section`);
+                target.classList.remove('hidden');
+                target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                if (mode === 'nearest') calculateNearest();
+                if (mode === 'day') renderParishes(ALL_DATA.parroquias, { containerId: 'parish-list-day', day: CURRENT_FILTER_DAY });
+                if (mode === 'parish') renderParishes(ALL_DATA.parroquias, { containerId: 'parish-list-search', day: 'Hoy' });
+            }
+        }
+
+        window.onload = () => {
+            setGreeting();
+            fetchData();
+            initGPS();
+        };
+
+        async function fetchData() {
+            try {
+                const response = await fetch(API_URL);
+                const data = await response.json();
+                ALL_DATA = data;
+                renderParishes(ALL_DATA.parroquias, { containerId: 'parish-list-day', day: CURRENT_FILTER_DAY });
+                renderParishes(ALL_DATA.parroquias, { containerId: 'parish-list-search', day: 'Hoy' });
+                calculateNearest();
+            } catch (error) {
+                showError("No se pudo conectar con la base de datos.");
+            }
+        }
+
+        function initGPS() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (pos) => {
+                        USER_LOCATION = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+                        document.getElementById('gps-status').innerText = 'location_on';
+                        document.getElementById('gps-status').style.color = 'var(--primary-gold)';
+                        document.getElementById('gps-status').classList.add('text-2xl');
+                        calculateNearest();
+                    },
+                    null,
+                    { enableHighAccuracy: true }
+                );
+            }
+        }
+
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371;
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon/2) * Math.sin(dLon/2);
+            return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
+        }
+
+        function formatHora(raw) {
+            if (!raw) return '';
+            let value = raw;
+            if (typeof value !== 'string') value = String(value);
+            if (value.includes('T')) {
+                const date = new Date(value);
+                if (!Number.isNaN(date.getTime())) {
+                    const useUtc = value.endsWith('Z');
+                    const hours = useUtc ? date.getUTCHours() : date.getHours();
+                    const minutes = useUtc ? date.getUTCMinutes() : date.getMinutes();
+                    return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+                }
+            }
+            const match = value.match(/^(\d{2}:\d{2})/);
+            return match ? match[1] : value;
+        }
+
+        function getNextMass(parishId) {
+            const now = new Date();
+            const todayName = DIAS_SEMANA[now.getDay()];
+            const currentTime = now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0');
+
+            const massesToday = ALL_DATA.horarios
+                .filter(h => h.ID_Parroquia === parishId && (h.Dia === todayName || h.Dia === 'Todos'))
+                .map(h => ({ ...h, HoraFmt: formatHora(h.Hora) }))
+                .sort((a, b) => a.HoraFmt.localeCompare(b.HoraFmt));
+
+            return massesToday.find(h => h.HoraFmt > currentTime) || null;
+        }
+
+        function calculateNearest() {
+            if (!ALL_DATA.parroquias.length) return;
+
+            const target = USER_LOCATION ? findNearestWithNextMass() : null;
+            const card = document.getElementById('nearest-card');
+
+            if (!USER_LOCATION) {
+                card.innerHTML = `
+                    <div class="flex items-start gap-4">
+                        <div class="p-3 rounded-2xl flex-shrink-0" style="background: linear-gradient(135deg, rgba(201, 169, 97, 0.15) 0%, rgba(212, 175, 55, 0.1) 100%);">
+                            <span class="material-icons text-3xl" style="color: var(--primary-gold);">location_on</span>
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="font-bold text-lg mb-2" style="color: var(--text-dark);">Activa tu ubicación</h3>
+                            <p class="text-sm" style="color: var(--text-gray); line-height: 1.6;">Permite el acceso a tu ubicación para recomendarte la parroquia más cercana con su próxima eucaristía.</p>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            if (!target) {
+                card.innerHTML = `<p class="text-sm text-gray-500">No hay datos suficientes para recomendarte.</p>`;
+                return;
+            }
+
+            const { parish, distance, next, hasNext } = target;
+            const nextText = hasNext ? `Próxima hoy: ${next.HoraFmt}` : 'No hay eucaristías próximas hoy';
+
+            card.innerHTML = `
+                <div class="flex items-start gap-4 mb-4">
+                    <div class="p-3 rounded-2xl flex-shrink-0" style="background: linear-gradient(135deg, var(--primary-gold) 0%, var(--accent-gold) 100%); box-shadow: 0 4px 12px rgba(201, 169, 97, 0.3);">
+                        <span class="material-icons text-3xl text-white">star</span>
+                    </div>
+                    <div class="flex-1">
+                        <h2 class="text-xl font-bold mb-2" style="color: var(--text-dark);">${parish.Nombre}</h2>
+                        <p class="text-sm mb-2 flex items-center gap-2" style="color: var(--text-gray);">
+                            <span class="material-icons text-base" style="color: var(--primary-gold);">place</span>
+                            <span>${parish.Direccion}, ${parish.Ciudad}</span>
+                        </p>
+                        <p class="text-sm font-semibold flex items-center gap-2" style="color: var(--primary-gold);">
+                            <span class="material-icons text-base">near_me</span>
+                            <span>A ${distance.toFixed(1)} km de tu ubicación</span>
+                        </p>
+                    </div>
+                </div>
+                <div class="rounded-2xl p-4 flex items-center justify-between" style="background: linear-gradient(135deg, rgba(201, 169, 97, 0.1) 0%, rgba(212, 175, 55, 0.05) 100%); border: 1px solid var(--border-light);">
+                    <div class="flex items-center gap-3">
+                        <div class="p-2 rounded-xl" style="background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                            <span class="material-icons" style="color: var(--primary-gold);">schedule</span>
+                        </div>
+                        <span class="text-sm font-semibold" style="color: var(--text-dark);">${nextText}</span>
+                    </div>
+                    <button onclick="openParishDetail('${parish.ID}')" class="px-5 py-2.5 rounded-full text-sm font-semibold text-white shadow-md hover:shadow-lg transition-all" style="background: linear-gradient(135deg, var(--primary-gold) 0%, var(--accent-gold) 100%);">Ver detalles</button>
+                </div>
+            `;
+        }
+
+        function findNearestWithNextMass() {
+            let best = null;
+            let bestDistance = Infinity;
+
+            ALL_DATA.parroquias.forEach(p => {
+                const dist = calculateDistance(USER_LOCATION.lat, USER_LOCATION.lng, p.Latitud, p.Longitud);
+                const next = getNextMass(p.ID);
+                if (next && dist < bestDistance) {
+                    bestDistance = dist;
+                    best = { parish: p, distance: dist, next, hasNext: true };
+                }
+            });
+
+            if (best) return best;
+
+            let closest = null;
+            let minDistance = Infinity;
+            ALL_DATA.parroquias.forEach(p => {
+                const dist = calculateDistance(USER_LOCATION.lat, USER_LOCATION.lng, p.Latitud, p.Longitud);
+                if (dist < minDistance) {
+                    minDistance = dist;
+                    closest = p;
+                }
+            });
+
+            return closest ? { parish: closest, distance: minDistance, next: null, hasNext: false } : null;
+        }
+
+        function renderParishes(list, options = {}) {
+            const container = document.getElementById(options.containerId || 'parish-list-day');
+            container.innerHTML = '';
+
+            const dayLabel = options.day || CURRENT_FILTER_DAY;
+            const activeDay = dayLabel === 'Hoy' ? DIAS_SEMANA[new Date().getDay()] : dayLabel;
+            const nowTime = new Date().getHours().toString().padStart(2, '0') + ":" + new Date().getMinutes().toString().padStart(2, '0');
+
+            if (!list.length) {
+                container.innerHTML = `<p class="text-sm text-gray-500">No hay parroquias para mostrar.</p>`;
+                return;
+            }
+
+            list.forEach(p => {
+                const card = document.createElement('div');
+                card.className = 'm-card parish-card p-4';
+                card.addEventListener('click', () => openParishDetail(p.ID));
+
+                const dayMasses = ALL_DATA.horarios
+                    .filter(h => h.ID_Parroquia === p.ID && (h.Dia === activeDay || h.Dia === 'Todos'))
+                    .map(h => ({ ...h, HoraFmt: formatHora(h.Hora) }))
+                    .sort((a, b) => a.HoraFmt.localeCompare(b.HoraFmt));
+
+                const next = getNextMass(p.ID);
+                const nextText = next ? `Próxima hoy: ${next.HoraFmt}` : 'Sin más misas hoy';
+
+                let massHtml = '';
+                if (dayMasses.length > 0) {
+                    massHtml = dayMasses.map(h => {
+                        const isNext = (dayLabel === 'Hoy' && h.HoraFmt > nowTime);
+                        return `<span class="time-badge ${isNext ? 'next' : ''}">${h.HoraFmt}</span>`;
+                    }).join('');
+                } else {
+                    massHtml = '<p class="text-xs text-gray-400 italic">No hay misas registradas para este día.</p>';
+                }
+
+                card.innerHTML = `
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="flex-1">
+                            <h3 class="font-bold text-lg leading-tight mb-2" style="color: var(--text-dark);">${p.Nombre}</h3>
+                            <div class="flex items-center text-sm gap-2 mb-1" style="color: var(--text-gray);">
+                                <span class="material-icons text-base" style="color: var(--primary-gold);">place</span>
+                                <span>${p.Direccion}</span>
+                            </div>
+                            <div class="flex items-center text-xs gap-2" style="color: var(--text-light);">
+                                <span class="material-icons text-sm" style="color: var(--primary-gold);">location_city</span>
+                                <span>${p.Ciudad}</span>
+                            </div>
+                        </div>
+                        <div class="p-2 rounded-full transition-all" style="background: rgba(201, 169, 97, 0.1);">
+                            <span class="material-icons" style="color: var(--primary-gold);">chevron_right</span>
+                        </div>
+                    </div>
+
+                    <div class="text-sm font-semibold mb-4 px-4 py-3 rounded-xl flex items-center gap-3" style="background: linear-gradient(135deg, rgba(201, 169, 97, 0.1) 0%, rgba(212, 175, 55, 0.05) 100%); border: 1px solid var(--border-light);">
+                        <span class="material-icons text-lg" style="color: var(--primary-gold);">schedule</span>
+                        <span style="color: var(--text-dark);">${nextText}</span>
+                    </div>
+
+                    <div class="pt-3" style="border-top: 1px solid var(--border-light);">
+                        <p class="text-xs font-semibold mb-3 flex items-center gap-2" style="color: var(--primary-gold);">
+                            <span class="material-icons text-sm">event</span>
+                            <span>HORARIOS ${activeDay.toUpperCase()}</span>
+                        </p>
+                        <div class="flex flex-wrap gap-2">
+                            ${massHtml}
+                        </div>
+                    </div>
+                `;'
+                container.appendChild(card);
+            });
+        }
+
+        function filterByDay(day) {
+            CURRENT_FILTER_DAY = day;
+            document.querySelectorAll('.chip').forEach(c => {
+                c.classList.remove('chip-active');
+                if (c.innerText === (day === 'Hoy' ? 'Hoy' : day.substring(0,3))) c.classList.add('chip-active');
+            });
+            renderParishes(ALL_DATA.parroquias, { containerId: 'parish-list-day', day });
+        }
+
+        document.getElementById('parish-search').addEventListener('input', (e) => {
+            const q = e.target.value.toLowerCase();
+            const filtered = ALL_DATA.parroquias.filter(p => 
+                p.Nombre.toLowerCase().includes(q) || 
+                p.Direccion.toLowerCase().includes(q) || 
+                p.Ciudad.toLowerCase().includes(q)
+            );
+            renderParishes(filtered, { containerId: 'parish-list-search', day: 'Hoy' });
+        });
+
+        function openMap(lat, lng) {
+            window.open(`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`, '_blank');
+        }
+
+        function showError(msg) {
+            const dayList = document.getElementById('parish-list-day');
+            const searchList = document.getElementById('parish-list-search');
+            const nearestCard = document.getElementById('nearest-card');
+            if (dayList) dayList.innerHTML = `<p class="text-center p-6 text-red-500">${msg}</p>`;
+            if (searchList) searchList.innerHTML = `<p class="text-center p-6 text-red-500">${msg}</p>`;
+            if (nearestCard) nearestCard.innerHTML = `<p class="text-center p-6 text-red-500">${msg}</p>`;
+        }
+
+        function openParishDetail(parishId) {
+            const parish = ALL_DATA.parroquias.find(p => String(p.ID) === String(parishId));
+            if (!parish) return;
+
+            const next = getNextMass(parish.ID);
+            const distance = USER_LOCATION
+                ? calculateDistance(USER_LOCATION.lat, USER_LOCATION.lng, parish.Latitud, parish.Longitud).toFixed(1)
+                : null;
+
+            const detail = `
+                <div class="detail-header">
+                    <div class="flex-1">
+                        <div class="flex items-center gap-3 mb-3">
+                            <div class="p-3 rounded-2xl" style="background: linear-gradient(135deg, var(--primary-gold) 0%, var(--accent-gold) 100%); box-shadow: 0 4px 12px rgba(201, 169, 97, 0.3);">
+                                <span class="material-icons text-white text-2xl">church</span>
+                            </div>
+                            <div class="detail-title">${parish.Nombre}</div>
+                        </div>
+                        <div class="pl-1">
+                            <p class="text-sm mb-2 flex items-center gap-2" style="color: var(--text-gray);">
+                                <span class="material-icons text-base" style="color: var(--primary-gold);">place</span>
+                                <span>${parish.Direccion}, ${parish.Ciudad}</span>
+                            </p>
+                            ${distance ? `<p class="text-sm font-semibold flex items-center gap-2" style="color: var(--primary-gold);"><span class="material-icons text-base">near_me</span><span>A ${distance} km de tu ubicación</span></p>` : ''}
+                        </div>
+                    </div>
+                    <button class="detail-close" onclick="closeParishDetail()">
+                        <span class="material-icons" style="color: var(--text-gray);">close</span>
+                    </button>
+                </div>
+
+                <div class="mt-6 rounded-2xl p-5 flex items-center gap-4" style="background: linear-gradient(135deg, rgba(201, 169, 97, 0.1) 0%, rgba(212, 175, 55, 0.05) 100%); border: 1px solid var(--border-light);">
+                    <div class="p-3 rounded-2xl" style="background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                        <span class="material-icons" style="color: var(--primary-gold); font-size: 28px;">schedule</span>
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-xs font-semibold mb-1" style="color: var(--text-light);">PRÓXIMA EUCARISTÍA</p>
+                        <p class="text-base font-bold" style="color: var(--text-dark);">
+                            ${next ? `Hoy a las <span style="color: var(--primary-gold);">${next.HoraFmt}</span>` : 'No hay más eucaristías hoy'}
+                        </p>
+                    </div>
+                </div>
+
+                <div class="mt-5 grid grid-cols-2 gap-3">
+                    <a href="tel:${parish.Telefono}" onclick="event.stopPropagation()" class="flex justify-center items-center py-4 rounded-2xl text-sm font-semibold transition-all hover:shadow-lg" style="background: var(--bg-light); color: var(--text-dark); border: 1px solid var(--border-light);">
+                        <span class="material-icons text-lg mr-2" style="color: var(--primary-gold);">call</span> Llamar
+                    </a>
+                    <button onclick="event.stopPropagation(); openMap(${parish.Latitud}, ${parish.Longitud})" class="flex justify-center items-center py-4 rounded-2xl text-sm font-semibold text-white shadow-md hover:shadow-xl transition-all" style="background: linear-gradient(135deg, var(--primary-gold) 0%, var(--accent-gold) 100%);">
+                        <span class="material-icons text-lg mr-2">map</span> Cómo llegar
+                    </button>
+                </div>
+
+                <div class="mt-4">
+                    ${renderSchedule(parish.ID)}
+                </div>
+            `;
+
+            document.getElementById('detail-content').innerHTML = detail;
+            document.getElementById('detail-overlay').classList.remove('hidden');
+            document.getElementById('parish-detail').classList.remove('hidden');
+        }
+
+        function closeParishDetail() {
+            document.getElementById('detail-overlay').classList.add('hidden');
+            document.getElementById('parish-detail').classList.add('hidden');
+        }
+
+        function renderSchedule(parishId) {
+            const grouped = {};
+            ALL_DATA.horarios
+                .filter(h => h.ID_Parroquia === parishId)
+                .forEach(h => {
+                    const day = h.Dia || 'Sin día';
+                    const time = formatHora(h.Hora);
+                    if (!grouped[day]) grouped[day] = [];
+                    grouped[day].push(time);
+                });
+
+            const order = ['Todos', ...DIAS_SEMANA];
+            const days = order.filter(d => grouped[d]);
+            Object.keys(grouped).forEach(d => {
+                if (!days.includes(d)) days.push(d);
+                grouped[d].sort();
+            });
+
+            if (!days.length) {
+                return '<p class="text-sm text-gray-500">No hay horarios registrados.</p>';
+            }
+
+            return `
+                <div class="mt-6 pt-5" style="border-top: 1px solid var(--border-light);">
+                    <h4 class="text-sm font-bold mb-4 flex items-center gap-2" style="color: var(--text-dark);">
+                        <span class="material-icons" style="color: var(--primary-gold);">calendar_month</span>
+                        <span>Horarios de Eucaristías</span>
+                    </h4>
+                    <div class="space-y-4">
+                        ${days.map(day => `
+                            <div class="schedule-day">
+                                <div class="schedule-day-title flex items-center gap-2 mb-2">
+                                    <div class="w-2 h-2 rounded-full" style="background: var(--primary-gold);"></div>
+                                    <span style="color: var(--text-dark);">${day}</span>
+                                </div>
+                                <div class="flex flex-wrap gap-2 pl-4">
+                                    ${grouped[day].map(t => `<span class="time-badge">${t}</span>`).join('')}
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>
