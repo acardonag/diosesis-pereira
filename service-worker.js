@@ -1,9 +1,9 @@
-const CACHE_NAME = 'diosesis-pereira-v3';
+const CACHE_NAME = 'diosesis-pereira-v4';
 const urlsToCache = [
-  './',
-  './index.html',
-  './logo-diosesis.png',
-  './manifest.json',
+  '/diosesis-pereira/',
+  '/diosesis-pereira/index.html',
+  '/diosesis-pereira/logo-diosesis.png',
+  '/diosesis-pereira/manifest.json',
   'https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap',
   'https://fonts.googleapis.com/icon?family=Material+Icons',
   'https://cdn.tailwindcss.com'
