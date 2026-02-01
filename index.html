@@ -734,10 +734,26 @@
                 const response = await fetch(API_URL);
                 const data = await response.json();
                 ALL_DATA = data;
+                
+                // DEBUG: Log de datos obtenidos
+                console.log('=== DATOS OBTENIDOS DE LA API ===');
+                console.log('Total parroquias:', ALL_DATA.parroquias.length);
+                console.log('Total horarios:', ALL_DATA.horarios.length);
+                
+                // DEBUG: Filtrar parroquia P03
+                const p03 = ALL_DATA.parroquias.find(p => p.ID === 'P03');
+                if (p03) {
+                    console.log('\n=== PARROQUIA P03 ===');
+                    console.log('Datos:', p03);
+                    const horariosP03 = ALL_DATA.horarios.filter(h => h.ID_Parroquia === 'P03');
+                    console.log('Horarios P03 (total: ' + horariosP03.length + '):', horariosP03);
+                }
+                
                 renderParishes(ALL_DATA.parroquias, { containerId: 'parish-list-day', day: CURRENT_FILTER_DAY });
                 renderParishes(ALL_DATA.parroquias, { containerId: 'parish-list-search', day: 'Hoy' });
                 calculateNearest();
             } catch (error) {
+                console.error('Error al obtener datos:', error);
                 showError("No se pudo conectar con la base de datos.");
             }
         }
@@ -771,17 +787,40 @@
             if (!raw) return '';
             let value = raw;
             if (typeof value !== 'string') value = String(value);
+            
+            let formatted = '';
+            
+            // Caso 1: Formato ISO de Google Sheets (1899-12-30T16:00:00.000Z)
             if (value.includes('T')) {
                 const date = new Date(value);
                 if (!Number.isNaN(date.getTime())) {
-                    const useUtc = value.endsWith('Z');
-                    const hours = useUtc ? date.getUTCHours() : date.getHours();
-                    const minutes = useUtc ? date.getUTCMinutes() : date.getMinutes();
-                    return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+                    // Siempre usar UTC para extraer la hora correcta del formato ISO
+                    const hours = date.getUTCHours();
+                    const minutes = date.getUTCMinutes();
+                    formatted = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+                    
+                    // DEBUG
+                    console.log('formatHora (ISO) - Original:', raw, '| Formateado:', formatted);
+                }
+            } 
+            // Caso 2: Formato de texto simple (HH:MM)
+            else {
+                const match = value.match(/^(\d{1,2}):(\d{2})/);
+                if (match) {
+                    const hours = match[1].padStart(2, '0');
+                    const minutes = match[2];
+                    formatted = `${hours}:${minutes}`;
+                } else {
+                    formatted = value;
+                }
+                
+                // DEBUG solo si hubo transformación
+                if (raw !== formatted) {
+                    console.log('formatHora (texto) - Original:', raw, '| Formateado:', formatted);
                 }
             }
-            const match = value.match(/^(\d{2}:\d{2})/);
-            return match ? match[1] : value;
+            
+            return formatted;
         }
 
         function getNextMass(parishId) {
@@ -794,7 +833,21 @@
                 .map(h => ({ ...h, HoraFmt: formatHora(h.Hora) }))
                 .sort((a, b) => a.HoraFmt.localeCompare(b.HoraFmt));
 
-            return massesToday.find(h => h.HoraFmt > currentTime) || null;
+            // DEBUG: Log para parroquia P03
+            if (parishId === 'P03') {
+                console.log('\n=== getNextMass para P03 ===');
+                console.log('Día actual:', todayName);
+                console.log('Hora actual:', currentTime);
+                console.log('Misas hoy:', massesToday);
+            }
+
+            const nextMass = massesToday.find(h => h.HoraFmt > currentTime) || null;
+            
+            if (parishId === 'P03') {
+                console.log('Próxima misa:', nextMass);
+            }
+            
+            return nextMass;
         }
 
         function calculateNearest() {
@@ -1057,14 +1110,20 @@
 
         function renderSchedule(parishId) {
             const grouped = {};
-            ALL_DATA.horarios
-                .filter(h => h.ID_Parroquia === parishId)
-                .forEach(h => {
-                    const day = h.Dia || 'Sin día';
-                    const time = formatHora(h.Hora);
-                    if (!grouped[day]) grouped[day] = [];
-                    grouped[day].push(time);
-                });
+            const horariosParroquia = ALL_DATA.horarios.filter(h => h.ID_Parroquia === parishId);
+            
+            // DEBUG: Log para parroquia P03
+            if (parishId === 'P03') {
+                console.log('\n=== renderSchedule para P03 ===');
+                console.log('Horarios encontrados:', horariosParroquia);
+            }
+            
+            horariosParroquia.forEach(h => {
+                const day = h.Dia || 'Sin día';
+                const time = formatHora(h.Hora);
+                if (!grouped[day]) grouped[day] = [];
+                grouped[day].push(time);
+            });
 
             const order = ['Todos', ...DIAS_SEMANA];
             const days = order.filter(d => grouped[d]);
@@ -1072,6 +1131,12 @@
                 if (!days.includes(d)) days.push(d);
                 grouped[d].sort();
             });
+            
+            // DEBUG: Log para parroquia P03
+            if (parishId === 'P03') {
+                console.log('Horarios agrupados por día:', grouped);
+                console.log('Días con horarios:', days);
+            }
 
             if (!days.length) {
                 return '<p class="text-sm text-gray-500">No hay horarios registrados.</p>';
