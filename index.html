@@ -5,6 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Diócesis de Pereira - App Oficial</title>
     
+    <!-- PWA Meta Tags -->
+    <meta name="description" content="Guía de parroquias de la Diócesis de Pereira con horarios de eucaristías">
+    <meta name="theme-color" content="#C9A961">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Diócesis">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+    
     <!-- Material Design & Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
@@ -493,9 +504,57 @@
         }
 
         .no-scrollbar::-webkit-scrollbar { display: none; }
+        
+        /* PWA Install Button */
+        .install-button {
+            position: fixed;
+            bottom: 90px;
+            right: 20px;
+            background: linear-gradient(135deg, var(--primary-gold) 0%, var(--accent-gold) 100%);
+            color: white;
+            padding: 14px 24px;
+            border-radius: 50px;
+            box-shadow: 0 8px 24px rgba(201, 169, 97, 0.4);
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            border: none;
+            display: none;
+            align-items: center;
+            gap: 8px;
+            z-index: 999;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            animation: slideInRight 0.5s ease-out;
+        }
+        
+        .install-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 32px rgba(201, 169, 97, 0.5);
+        }
+        
+        .install-button.show {
+            display: flex;
+        }
+        
+        @keyframes slideInRight {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
     </style>
 </head>
 <body>
+
+    <!-- PWA Install Button -->
+    <button id="installButton" class="install-button">
+        <span class="material-icons">download</span>
+        <span>Instalar App</span>
+    </button>
 
     <!-- Header -->
     <div class="app-bar p-5 flex items-center justify-between">
@@ -589,6 +648,52 @@
     </div>
 
     <script type="text/javascript">
+        // PWA - Service Worker Registration
+        let deferredPrompt;
+        
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/service-worker.js')
+                    .then(registration => {
+                        console.log('Service Worker registrado con éxito:', registration.scope);
+                    })
+                    .catch(error => {
+                        console.log('Error al registrar Service Worker:', error);
+                    });
+            });
+        }
+
+        // PWA - Install Prompt
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            const installButton = document.getElementById('installButton');
+            installButton.classList.add('show');
+        });
+
+        // PWA - Install Button Handler
+        document.addEventListener('DOMContentLoaded', () => {
+            const installButton = document.getElementById('installButton');
+            
+            installButton.addEventListener('click', async () => {
+                if (deferredPrompt) {
+                    deferredPrompt.prompt();
+                    const { outcome } = await deferredPrompt.userChoice;
+                    console.log(`Usuario ${outcome === 'accepted' ? 'aceptó' : 'rechazó'} la instalación`);
+                    deferredPrompt = null;
+                    installButton.classList.remove('show');
+                }
+            });
+        });
+
+        // PWA - Detectar cuando la app está instalada
+        window.addEventListener('appinstalled', () => {
+            console.log('PWA instalada con éxito');
+            const installButton = document.getElementById('installButton');
+            installButton.classList.remove('show');
+        });
+
+        // Main App Code
         const API_URL = "https://script.google.com/macros/s/AKfycbx7E0SWXmLWnVEO5Jjzk5Cx-9jZCKFSnO1wT4tVSfok9hxulfw_FOI13OFS0NiutCcU/exec";
         
         let ALL_DATA = { parroquias: [], horarios: [] };
