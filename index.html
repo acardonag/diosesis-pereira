@@ -588,7 +588,7 @@
         </div>
     </div>
 
-    <script>
+    <script type="text/javascript">
         const API_URL = "https://script.google.com/macros/s/AKfycbx7E0SWXmLWnVEO5Jjzk5Cx-9jZCKFSnO1wT4tVSfok9hxulfw_FOI13OFS0NiutCcU/exec";
         
         let ALL_DATA = { parroquias: [], horarios: [] };
@@ -606,7 +606,7 @@
             document.getElementById('motivation').innerText = motivation;
         }
 
-        function setMode(mode) {
+        window.setMode = function(mode) {
             const sections = ['nearest-section', 'day-section', 'parish-section'];
             sections.forEach(id => document.getElementById(id).classList.add('hidden'));
 
@@ -618,7 +618,7 @@
                 if (mode === 'day') renderParishes(ALL_DATA.parroquias, { containerId: 'parish-list-day', day: CURRENT_FILTER_DAY });
                 if (mode === 'parish') renderParishes(ALL_DATA.parroquias, { containerId: 'parish-list-search', day: 'Hoy' });
             }
-        }
+        };
 
         window.onload = () => {
             setGreeting();
@@ -853,14 +853,14 @@
             });
         }
 
-        function filterByDay(day) {
+        window.filterByDay = function(day) {
             CURRENT_FILTER_DAY = day;
             document.querySelectorAll('.chip').forEach(c => {
                 c.classList.remove('chip-active');
                 if (c.innerText === (day === 'Hoy' ? 'Hoy' : day.substring(0,3))) c.classList.add('chip-active');
             });
             renderParishes(ALL_DATA.parroquias, { containerId: 'parish-list-day', day });
-        }
+        };
 
         document.getElementById('parish-search').addEventListener('input', (e) => {
             const q = e.target.value.toLowerCase();
@@ -872,9 +872,9 @@
             renderParishes(filtered, { containerId: 'parish-list-search', day: 'Hoy' });
         });
 
-        function openMap(lat, lng) {
+        window.openMap = function(lat, lng) {
             window.open(`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`, '_blank');
-        }
+        };
 
         function showError(msg) {
             const dayList = document.getElementById('parish-list-day');
@@ -885,7 +885,7 @@
             if (nearestCard) nearestCard.innerHTML = `<p class="text-center p-6 text-red-500">${msg}</p>`;
         }
 
-        function openParishDetail(parishId) {
+        window.openParishDetail = function(parishId) {
             const parish = ALL_DATA.parroquias.find(p => String(p.ID) === String(parishId));
             if (!parish) return;
 
@@ -947,10 +947,10 @@
             document.getElementById('parish-detail').classList.remove('hidden');
         }
 
-        function closeParishDetail() {
+        window.closeParishDetail = function() {
             document.getElementById('detail-overlay').classList.add('hidden');
             document.getElementById('parish-detail').classList.add('hidden');
-        }
+        };
 
         function renderSchedule(parishId) {
             const grouped = {};
