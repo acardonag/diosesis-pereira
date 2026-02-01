@@ -794,13 +794,18 @@
             if (value.includes('T')) {
                 const date = new Date(value);
                 if (!Number.isNaN(date.getTime())) {
-                    // Siempre usar UTC para extraer la hora correcta del formato ISO
-                    const hours = date.getUTCHours();
+                    // Ajustar zona horaria de Colombia (UTC-5)
+                    // Google Sheets exporta con offset incorrecto, restamos 5 horas
+                    const hours = date.getUTCHours() - 5;
                     const minutes = date.getUTCMinutes();
-                    formatted = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+                    
+                    // Manejar horas negativas (ciclo de 24h)
+                    const adjustedHours = hours < 0 ? hours + 24 : hours;
+                    
+                    formatted = `${String(adjustedHours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
                     
                     // DEBUG
-                    console.log('formatHora (ISO) - Original:', raw, '| Formateado:', formatted);
+                    console.log('formatHora (ISO) - Original:', raw, '| UTC:', date.getUTCHours() + ':' + date.getUTCMinutes(), '| Colombia (UTC-5):', formatted);
                 }
             } 
             // Caso 2: Formato de texto simple (HH:MM)
@@ -813,14 +818,24 @@
                 } else {
                     formatted = value;
                 }
-                
-                // DEBUG solo si hubo transformación
-                if (raw !== formatted) {
-                    console.log('formatHora (texto) - Original:', raw, '| Formateado:', formatted);
-                }
             }
             
             return formatted;
+        }
+        
+        // Convertir hora de 24h a 12h con AM/PM
+        function formatHoraAMPM(hora24) {
+            if (!hora24) return '';
+            const [hours, minutes] = hora24.split(':').map(Number);
+            
+            if (isNaN(hours) || isNaN(minutes)) return hora24;
+            
+            const period = hours >= 12 ? 'p.m.' : 'a.m.';
+            let hours12 = hours % 12;
+            if (hours12 === 0) hours12 = 12; // 0:00 -> 12:00 AM, 12:00 -> 12:00 PM
+            
+            const minutesStr = String(minutes).padStart(2, '0');
+            return `${hours12}:${minutesStr} ${period}`;
         }
 
         function getNextMass(parishId) {
@@ -877,7 +892,7 @@
             }
 
             const { parish, distance, next, hasNext } = target;
-            const nextText = hasNext ? `Próxima hoy: ${next.HoraFmt}` : 'No hay eucaristías próximas hoy';
+            const nextText = hasNext ? `Próxima hoy: ${formatHoraAMPM(next.HoraFmt)}` : 'No hay eucaristías próximas hoy';
 
             card.innerHTML = `
                 <div class="flex items-start gap-4 mb-4">
@@ -901,7 +916,7 @@
                         <div class="p-2 rounded-xl" style="background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
                             <span class="material-icons" style="color: var(--primary-gold);">schedule</span>
                         </div>
-                        <span class="text-sm font-semibold" style="color: var(--text-dark);">${nextText}</span>
+                        <span class="text-sm font-semibold" style="color: var(--text-dark);">${next ? `Próxima hoy: ${formatHoraAMPM(next.HoraFmt)}` : 'No hay más eucaristías hoy'}</span>
                     </div>
                     <button onclick="openParishDetail('${parish.ID}')" class="px-5 py-2.5 rounded-full text-sm font-semibold text-white shadow-md hover:shadow-lg transition-all" style="background: linear-gradient(135deg, var(--primary-gold) 0%, var(--accent-gold) 100%);">Ver detalles</button>
                 </div>
@@ -960,13 +975,14 @@
                     .sort((a, b) => a.HoraFmt.localeCompare(b.HoraFmt));
 
                 const next = getNextMass(p.ID);
-                const nextText = next ? `Próxima hoy: ${next.HoraFmt}` : 'Sin más misas hoy';
+                const nextText = next ? `Próxima hoy: ${formatHoraAMPM(next.HoraFmt)}` : 'Sin más misas hoy';
 
                 let massHtml = '';
                 if (dayMasses.length > 0) {
                     massHtml = dayMasses.map(h => {
                         const isNext = (dayLabel === 'Hoy' && h.HoraFmt > nowTime);
-                        return `<span class="time-badge ${isNext ? 'next' : ''}">${h.HoraFmt}</span>`;
+                        const horaDisplay = formatHoraAMPM(h.HoraFmt);
+                        return `<span class="time-badge ${isNext ? 'next' : ''}">${horaDisplay}</span>`;
                     }).join('');
                 } else {
                     massHtml = '<p class="text-xs text-gray-400 italic">No hay misas registradas para este día.</p>';
@@ -1079,7 +1095,7 @@
                     <div class="flex-1">
                         <p class="text-xs font-semibold mb-1" style="color: var(--text-light);">PRÓXIMA EUCARISTÍA</p>
                         <p class="text-base font-bold" style="color: var(--text-dark);">
-                            ${next ? `Hoy a las <span style="color: var(--primary-gold);">${next.HoraFmt}</span>` : 'No hay más eucaristías hoy'}
+                            ${next ? `Hoy a las <span style="color: var(--primary-gold);">${formatHoraAMPM(next.HoraFmt)}</span>` : 'No hay más eucaristías hoy'}
                         </p>
                     </div>
                 </div>
@@ -1129,7 +1145,12 @@
             const days = order.filter(d => grouped[d]);
             Object.keys(grouped).forEach(d => {
                 if (!days.includes(d)) days.push(d);
-                grouped[d].sort();
+                // Ordenar horarios dentro de cada día (formato 24h para ordenar correctamente)
+                grouped[d].sort((a, b) => {
+                    const [hoursA, minutesA] = a.split(':').map(Number);
+                    const [hoursB, minutesB] = b.split(':').map(Number);
+                    return (hoursA * 60 + minutesA) - (hoursB * 60 + minutesB);
+                });
             });
             
             // DEBUG: Log para parroquia P03
@@ -1156,7 +1177,7 @@
                                     <span style="color: var(--text-dark);">${day}</span>
                                 </div>
                                 <div class="flex flex-wrap gap-2 pl-4">
-                                    ${grouped[day].map(t => `<span class="time-badge">${t}</span>`).join('')}
+                                    ${grouped[day].map(t => `<span class="time-badge">${formatHoraAMPM(t)}</span>`).join('')}
                                 </div>
                             </div>
                         `).join('')}
