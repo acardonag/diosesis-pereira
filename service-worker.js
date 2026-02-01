@@ -1,7 +1,8 @@
-const CACHE_NAME = 'diosesis-pereira-v1';
+const CACHE_NAME = 'diosesis-pereira-v2';
 const urlsToCache = [
   '/',
   '/index.html',
+  '/logo-diosesis.png',
   'https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap',
   'https://fonts.googleapis.com/icon?family=Material+Icons',
   'https://cdn.tailwindcss.com'
@@ -98,8 +99,8 @@ self.addEventListener('push', event => {
   const title = data.title || 'Diócesis de Pereira';
   const options = {
     body: data.body || 'Nueva actualización disponible',
-    icon: 'icon-192.png',
-    badge: 'icon-192.png',
+    icon: 'logo-diosesis.png',
+    badge: 'logo-diosesis.png',
     vibrate: [200, 100, 200],
     tag: 'diosesis-notification'
   };
