@@ -791,11 +791,10 @@
             let formatted = '';
             
             // Caso 1: Formato ISO de Google Sheets (1899-12-30T16:00:00.000Z)
-            if (value.includes('T')) {
+            if (value.includes('T') && value.includes('Z')) {
                 const date = new Date(value);
                 if (!Number.isNaN(date.getTime())) {
                     // Ajustar zona horaria de Colombia (UTC-5)
-                    // Google Sheets exporta con offset incorrecto, restamos 5 horas
                     const hours = date.getUTCHours() - 5;
                     const minutes = date.getUTCMinutes();
                     
@@ -807,8 +806,33 @@
                     // DEBUG
                     console.log('formatHora (ISO) - Original:', raw, '| UTC:', date.getUTCHours() + ':' + date.getUTCMinutes(), '| Colombia (UTC-5):', formatted);
                 }
-            } 
-            // Caso 2: Formato de texto simple (HH:MM)
+            }
+            // Caso 2: Formato con AM/PM desde Excel (7:00:00 a.m, 04:30:00 p.m)
+            else if (value.includes('a.m') || value.includes('p.m') || value.includes('a m') || value.includes('p m')) {
+                // Limpiar espacios y normalizar
+                const normalized = value.toLowerCase().replace(/\s+/g, '').trim();
+                const isPM = normalized.includes('p.m') || normalized.includes('pm');
+                
+                // Extraer hora, minutos y segundos
+                const match = normalized.match(/(\d{1,2}):(\d{2})(?::(\d{2}))?/);
+                if (match) {
+                    let hours = parseInt(match[1]);
+                    const minutes = parseInt(match[2]);
+                    
+                    // Convertir a formato 24h
+                    if (isPM && hours !== 12) {
+                        hours += 12;
+                    } else if (!isPM && hours === 12) {
+                        hours = 0;
+                    }
+                    
+                    formatted = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+                    
+                    // DEBUG
+                    console.log('formatHora (AM/PM) - Original:', raw, '| Formateado 24h:', formatted);
+                }
+            }
+            // Caso 3: Formato de texto simple (HH:MM o H:MM)
             else {
                 const match = value.match(/^(\d{1,2}):(\d{2})/);
                 if (match) {
