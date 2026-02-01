@@ -536,6 +536,36 @@
             display: flex;
         }
         
+        /* iOS Install Prompt */
+        .ios-install-prompt {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(135deg, var(--primary-gold) 0%, var(--accent-gold) 100%);
+            color: white;
+            padding: 16px 20px;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.15);
+            z-index: 1001;
+            display: none;
+            animation: slideInUp 0.5s ease-out;
+        }
+        
+        .ios-install-prompt.show {
+            display: block;
+        }
+        
+        @keyframes slideInUp {
+            from {
+                transform: translateY(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        
         @keyframes slideInRight {
             from {
                 transform: translateX(400px);
@@ -549,6 +579,19 @@
     </style>
 </head>
 <body>
+
+    <!-- iOS Install Prompt -->
+    <div id="iosInstallPrompt" class="ios-install-prompt">
+        <div class="flex items-center justify-between">
+            <div class="flex-1">
+                <p class="font-bold text-base mb-1">📱 Instalar App</p>
+                <p class="text-sm opacity-90">Toca <span class="font-bold">⬆️ Compartir</span> y luego <span class="font-bold">"Agregar a pantalla de inicio"</span></p>
+            </div>
+            <button onclick="closeIosPrompt()" class="ml-3 p-2 rounded-full bg-white bg-opacity-20">
+                <span class="material-icons">close</span>
+            </button>
+        </div>
+    </div>
 
     <!-- PWA Install Button -->
     <button id="installButton" class="install-button">
@@ -651,7 +694,7 @@
         
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/service-worker.js')
+                navigator.serviceWorker.register('./service-worker.js')
                     .then(registration => {
                         console.log('Service Worker registrado con éxito:', registration.scope);
                     })
@@ -660,35 +703,73 @@
                     });
             });
         }
+        
+        // Check if running on iOS
+        function isIOS() {
+            return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+        }
+        
+        // Check if already installed
+        function isInStandaloneMode() {
+            return (window.matchMedia('(display-mode: standalone)').matches) || 
+                   (window.navigator.standalone) || 
+                   document.referrer.includes('android-app://');
+        }
+        
+        // Show iOS install instructions if needed
+        window.addEventListener('load', () => {
+            if (isIOS() && !isInStandaloneMode()) {
+                // Show iOS prompt after 3 seconds
+                setTimeout(() => {
+                    const iosPrompt = document.getElementById('iosInstallPrompt');
+                    if (iosPrompt && !localStorage.getItem('iosPromptClosed')) {
+                        iosPrompt.classList.add('show');
+                    }
+                }, 3000);
+            }
+        });
+        
+        // Close iOS prompt
+        window.closeIosPrompt = function() {
+            const iosPrompt = document.getElementById('iosInstallPrompt');
+            iosPrompt.classList.remove('show');
+            localStorage.setItem('iosPromptClosed', 'true');
+        };
 
-        // PWA - Install Prompt
+        // PWA - Install Prompt (Android/Desktop Chrome)
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
             deferredPrompt = e;
             const installButton = document.getElementById('installButton');
-            installButton.classList.add('show');
+            if (installButton) {
+                installButton.classList.add('show');
+            }
         });
 
         // PWA - Install Button Handler
         document.addEventListener('DOMContentLoaded', () => {
             const installButton = document.getElementById('installButton');
             
-            installButton.addEventListener('click', async () => {
-                if (deferredPrompt) {
-                    deferredPrompt.prompt();
-                    const { outcome } = await deferredPrompt.userChoice;
-                    console.log(`Usuario ${outcome === 'accepted' ? 'aceptó' : 'rechazó'} la instalación`);
-                    deferredPrompt = null;
-                    installButton.classList.remove('show');
-                }
-            });
+            if (installButton) {
+                installButton.addEventListener('click', async () => {
+                    if (deferredPrompt) {
+                        deferredPrompt.prompt();
+                        const { outcome } = await deferredPrompt.userChoice;
+                        console.log(`Usuario ${outcome === 'accepted' ? 'aceptó' : 'rechazó'} la instalación`);
+                        deferredPrompt = null;
+                        installButton.classList.remove('show');
+                    }
+                });
+            }
         });
 
         // PWA - Detectar cuando la app está instalada
         window.addEventListener('appinstalled', () => {
             console.log('PWA instalada con éxito');
             const installButton = document.getElementById('installButton');
-            installButton.classList.remove('show');
+            if (installButton) {
+                installButton.classList.remove('show');
+            }
         });
 
         // Main App Code
